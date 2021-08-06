@@ -524,7 +524,7 @@ cdef cgbinder.GBinderLocalReply* local_transact_callback(cgbinder.GBinderLocalOb
 
 cdef class ServiceManager:
     cdef cgbinder.GBinderServiceManager* _sm
-    cdef public object list_func, get_service_func
+    cdef public object func, list_func, get_service_func
 
     def __cinit__(self, dev):
         self._sm = cgbinder.gbinder_servicemanager_new(ensure_binary(dev))
