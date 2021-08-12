@@ -2,6 +2,8 @@
 
 ## Prerequisites
 * libgbinder
+* libglibutil
+* pkgconf
 
 For development, you will also need Cython:
 ```bash
