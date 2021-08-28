@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export PYBUILD_BUILD_ARGS_python3=--cython
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild

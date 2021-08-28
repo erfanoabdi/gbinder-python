@@ -1,0 +1,25 @@
+Source: gbinder-python
+Maintainer: Eugenio Paolantonio (g7) <me@medesimo.eu>
+Section: python
+Priority: optional
+Build-Depends: debhelper (>= 13),
+               dh-python,
+               python3-all-dev (>= 3.2),
+               cython3,
+               libgbinder-dev,
+               libglibutil-dev,
+               libglib2.0-dev,
+               pkgconf,
+Standards-Version: 4.5.0.3
+Vcs-Browser: https://github.com/droidian/gbinder-python
+Vcs-Git: https://github.com/droidian/gbinder-python.git
+
+Package: python3-gbinder
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python3:Depends},
+         python3,
+Description: Cython extension module for C++ gbinder functions
+ This package contains a cython extension module for gbinder,
+ allowing to call gbinder from Python scripts.
