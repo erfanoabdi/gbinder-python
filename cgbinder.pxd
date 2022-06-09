@@ -47,6 +47,7 @@ cdef extern from "gbinder/gbinder_servicemanager.h":
     ctypedef void (*GBinderServiceManagerAddServiceFunc)(GBinderServiceManager* sm, int status, void* user_data)
     ctypedef void (*GBinderServiceManagerRegistrationFunc)(GBinderServiceManager* sm, const char* name, void* user_data)
 
+    GBinderServiceManager* gbinder_servicemanager_new2(const char* dev, const char* sm_protocol, const char* rpc_protocol)
     GBinderServiceManager* gbinder_servicemanager_new(const char* dev)
     GBinderLocalObject* gbinder_servicemanager_new_local_object(GBinderServiceManager* sm, const char* iface, GBinderLocalTransactFunc handler, void* user_data)
     GBinderLocalObject* gbinder_servicemanager_new_local_object2(GBinderServiceManager* sm, const char* const* ifaces, GBinderLocalTransactFunc handler, void* user_data)
