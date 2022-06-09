@@ -526,8 +526,11 @@ cdef class ServiceManager:
     cdef cgbinder.GBinderServiceManager* _sm
     cdef public object func, list_func, get_service_func
 
-    def __cinit__(self, dev):
-        self._sm = cgbinder.gbinder_servicemanager_new(ensure_binary(dev))
+    def __cinit__(self, dev, sm_protocol=None, rpc_protocol=None):
+        if sm_protocol and rpc_protocol:
+            self._sm = cgbinder.gbinder_servicemanager_new2(ensure_binary(dev), ensure_binary(sm_protocol), ensure_binary(rpc_protocol))
+        else:
+            self._sm = cgbinder.gbinder_servicemanager_new(ensure_binary(dev))
 
     def __dealloc__(self):
         if self._sm is not NULL:
