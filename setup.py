@@ -1,5 +1,5 @@
 import sys, subprocess
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 
 def pkgconfig(package, kw):
