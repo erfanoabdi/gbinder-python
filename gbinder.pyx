@@ -583,8 +583,10 @@ cdef class ServiceManager:
             return None
         cdef char** services = cgbinder.gbinder_servicemanager_list_sync(self._sm)
         services_list = []
-        i = 0
+        if services == NULL:
+            return services_list
 
+        i = 0
         while services[i] != NULL:
             services_list.append(services[i].decode())
             i += 1
@@ -674,8 +676,10 @@ cdef void service_manager_get_service_func(cgbinder.GBinderServiceManager* sm, c
 
 cdef bint service_manager_list_func(cgbinder.GBinderServiceManager* sm, char** services, void* user_data) with gil:
     services_list = []
-    i = 0
+    if services == NULL:
+        return services_list
 
+    i = 0
     while services[i] != NULL:
         services_list.append(services[i].decode())
         i += 1
