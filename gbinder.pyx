@@ -1,5 +1,14 @@
 cimport cgbinder
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport malloc, free, abort
+
+import os
+
+abort_on_uncaught_exception = bool(os.environ.get("GBINDER_PYTHON_ABORT_ON_UNCAUGHT_EXCEPTION"))
+
+def _print_exception_and_abort():
+    import traceback
+    traceback.print_exc()
+    abort()
 
 def ensure_binary(s):
     if isinstance(s, bytes):
@@ -66,7 +75,13 @@ cdef class RemoteObject:
             cgbinder.gbinder_remote_object_remove_handler(self._object, id)
 
 cdef void remote_object_local_notify_func(cgbinder.GBinderRemoteObject* obj, void* user_data) noexcept with gil:
-    (<object>user_data).notify_func_callback()
+    try:
+        (<object>user_data).notify_func_callback()
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef class RemoteReply:
     cdef cgbinder.GBinderRemoteReply* _reply
@@ -203,12 +218,24 @@ cdef class Client:
         return cgbinder.gbinder_client_cancel(self._client, id)
 
 cdef void client_reply_func(cgbinder.GBinderClient* client, cgbinder.GBinderRemoteReply* c_reply, int status, void* user_data) noexcept with gil:
-    reply = RemoteReply()
-    reply.set_c_reply(c_reply)
-    (<object>user_data).reply_func_callback(reply, status)
+    try:
+        reply = RemoteReply()
+        reply.set_c_reply(c_reply)
+        (<object>user_data).reply_func_callback(reply, status)
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef void local_destroy_notif(void* user_data) noexcept with gil:
-    (<object>user_data).destroy_notif_callback()
+    try:
+        (<object>user_data).destroy_notif_callback()
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef class LocalRequest:
     cdef cgbinder.GBinderLocalRequest* _req
@@ -515,12 +542,19 @@ cdef class LocalObject:
             return reply
 
 cdef cgbinder.GBinderLocalReply* local_transact_callback(cgbinder.GBinderLocalObject* obj, cgbinder.GBinderRemoteRequest* c_req, unsigned int code, unsigned int flags, int* status, void* user_data) noexcept with gil:
-    req = RemoteRequest()
-    req.set_c_req(c_req)
-    reply, status_ret = (<object>user_data).callback(req, code, flags)
-    cdef int stat = status_ret
-    status = &stat
-    return (<LocalReply>reply)._reply
+    cdef int stat
+    try:
+        req = RemoteRequest()
+        req.set_c_req(c_req)
+        reply, status_ret = (<object>user_data).callback(req, code, flags)
+        stat = status_ret
+        status = &stat
+        return (<LocalReply>reply)._reply
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef class ServiceManager:
     cdef cgbinder.GBinderServiceManager* _sm
@@ -670,29 +704,60 @@ cdef class ServiceManager:
             free(ids)
 
 cdef void service_manager_get_service_func(cgbinder.GBinderServiceManager* sm, cgbinder.GBinderRemoteObject* c_object, int status, void* user_data) noexcept with gil:
-    remote = RemoteObject()
-    remote.set_c_object(c_object)
-    (<object>user_data).get_service_func_callback(remote, status)
+    try:
+        remote = RemoteObject()
+        remote.set_c_object(c_object)
+        (<object>user_data).get_service_func_callback(remote, status)
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef bint service_manager_list_func(cgbinder.GBinderServiceManager* sm, char** services, void* user_data) noexcept with gil:
-    services_list = []
-    if services == NULL:
-        return services_list
+    try:
+        services_list = []
+        if services == NULL:
+            return services_list
 
-    i = 0
-    while services[i] != NULL:
-        services_list.append(services[i].decode())
-        i += 1
-    return (<object>user_data).list_func_callback(services_list)
+        i = 0
+        while services[i] != NULL:
+            services_list.append(services[i].decode())
+            i += 1
+        return (<object>user_data).list_func_callback(services_list)
+
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef void service_manager_add_service_func(cgbinder.GBinderServiceManager* sm, int status, void* user_data) noexcept with gil:
-    (<object>user_data).add_service_func_callback(status)
+    try:
+        (<object>user_data).add_service_func_callback(status)
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef void service_manager_func(cgbinder.GBinderServiceManager* sm, void* user_data) noexcept with gil:
-    (<object>user_data).func_callback()
+    try:
+        (<object>user_data).func_callback()
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef void service_manager_registration_func(cgbinder.GBinderServiceManager* sm, const char* name, void* user_data) noexcept with gil:
-    (<object>user_data).registration_func_callback(name)
+    try:
+        (<object>user_data).registration_func_callback(name)
+    except BaseException:
+        if abort_on_uncaught_exception:
+            _print_exception_and_abort()
+        else:
+            raise
 
 cdef class Buffer:
     cdef cgbinder.GBinderBuffer* _buffer
