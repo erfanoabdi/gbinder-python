@@ -519,7 +519,9 @@ cdef cgbinder.GBinderLocalReply* local_transact_callback(cgbinder.GBinderLocalOb
     req.set_c_req(c_req)
     reply, status_ret = (<object>user_data).callback(req, code, flags)
     cdef int stat = status_ret
-    status = &stat
+    status[0] = stat
+    if reply is None or status_ret < 0:
+        return NULL
     return (<LocalReply>reply)._reply
 
 cdef class ServiceManager:
