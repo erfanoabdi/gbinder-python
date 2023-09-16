@@ -65,7 +65,7 @@ cdef class RemoteObject:
         if self._object is not NULL:
             cgbinder.gbinder_remote_object_remove_handler(self._object, id)
 
-cdef void remote_object_local_notify_func(cgbinder.GBinderRemoteObject* obj, void* user_data) with gil:
+cdef void remote_object_local_notify_func(cgbinder.GBinderRemoteObject* obj, void* user_data) noexcept with gil:
     (<object>user_data).notify_func_callback()
 
 cdef class RemoteReply:
@@ -202,12 +202,12 @@ cdef class Client:
     def cancel(self, unsigned long id):
         return cgbinder.gbinder_client_cancel(self._client, id)
 
-cdef void client_reply_func(cgbinder.GBinderClient* client, cgbinder.GBinderRemoteReply* c_reply, int status, void* user_data) with gil:
+cdef void client_reply_func(cgbinder.GBinderClient* client, cgbinder.GBinderRemoteReply* c_reply, int status, void* user_data) noexcept with gil:
     reply = RemoteReply()
     reply.set_c_reply(c_reply)
     (<object>user_data).reply_func_callback(reply, status)
 
-cdef void local_destroy_notif(void* user_data) with gil:
+cdef void local_destroy_notif(void* user_data) noexcept with gil:
     (<object>user_data).destroy_notif_callback()
 
 cdef class LocalRequest:
@@ -514,12 +514,14 @@ cdef class LocalObject:
             reply.set_c_reply(c_reply)
             return reply
 
-cdef cgbinder.GBinderLocalReply* local_transact_callback(cgbinder.GBinderLocalObject* obj, cgbinder.GBinderRemoteRequest* c_req, unsigned int code, unsigned int flags, int* status, void* user_data) with gil:
+cdef cgbinder.GBinderLocalReply* local_transact_callback(cgbinder.GBinderLocalObject* obj, cgbinder.GBinderRemoteRequest* c_req, unsigned int code, unsigned int flags, int* status, void* user_data) noexcept with gil:
     req = RemoteRequest()
     req.set_c_req(c_req)
     reply, status_ret = (<object>user_data).callback(req, code, flags)
     cdef int stat = status_ret
-    status = &stat
+    status[0] = stat
+    if reply is None or status_ret < 0:
+        return NULL
     return (<LocalReply>reply)._reply
 
 cdef class ServiceManager:
@@ -669,12 +671,12 @@ cdef class ServiceManager:
         else:
             free(ids)
 
-cdef void service_manager_get_service_func(cgbinder.GBinderServiceManager* sm, cgbinder.GBinderRemoteObject* c_object, int status, void* user_data) with gil:
+cdef void service_manager_get_service_func(cgbinder.GBinderServiceManager* sm, cgbinder.GBinderRemoteObject* c_object, int status, void* user_data) noexcept with gil:
     remote = RemoteObject()
     remote.set_c_object(c_object)
     (<object>user_data).get_service_func_callback(remote, status)
 
-cdef bint service_manager_list_func(cgbinder.GBinderServiceManager* sm, char** services, void* user_data) with gil:
+cdef bint service_manager_list_func(cgbinder.GBinderServiceManager* sm, char** services, void* user_data) noexcept with gil:
     services_list = []
     if services == NULL:
         return services_list
@@ -685,13 +687,13 @@ cdef bint service_manager_list_func(cgbinder.GBinderServiceManager* sm, char** s
         i += 1
     return (<object>user_data).list_func_callback(services_list)
 
-cdef void service_manager_add_service_func(cgbinder.GBinderServiceManager* sm, int status, void* user_data) with gil:
+cdef void service_manager_add_service_func(cgbinder.GBinderServiceManager* sm, int status, void* user_data) noexcept with gil:
     (<object>user_data).add_service_func_callback(status)
 
-cdef void service_manager_func(cgbinder.GBinderServiceManager* sm, void* user_data) with gil:
+cdef void service_manager_func(cgbinder.GBinderServiceManager* sm, void* user_data) noexcept with gil:
     (<object>user_data).func_callback()
 
-cdef void service_manager_registration_func(cgbinder.GBinderServiceManager* sm, const char* name, void* user_data) with gil:
+cdef void service_manager_registration_func(cgbinder.GBinderServiceManager* sm, const char* name, void* user_data) noexcept with gil:
     (<object>user_data).registration_func_callback(name)
 
 cdef class Buffer:

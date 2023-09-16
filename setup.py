@@ -31,7 +31,7 @@ if USE_CYTHON:
 setup(
     name="gbinder-python",
     description="""Cython extension module for C++ gbinder functions""",
-    version="1.1.1",
+    version="1.1.2",
     author="Erfan Abdi",
     author_email="erfangplus@gmail.com",
     url="https://github.com/erfanoabdi/gbinder-python",
